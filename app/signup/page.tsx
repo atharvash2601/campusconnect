@@ -16,14 +16,54 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false);
 
-  const handleSignup = (
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSignup = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
-    // Frontend only for now.
-    // Later this will connect to the backend.
-    router.push("/home");
+    setLoading(true);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+
+    const data = {
+      name: form.get("name"),
+      email: form.get("email"),
+      password: form.get("password"),
+      confirmPassword: form.get("confirmPassword"),
+      department: form.get("department"),
+      year: form.get("year"),
+      termsAccepted: form.get("terms") === "on",
+    };
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.message || "Signup failed");
+        return;
+      }
+
+      // Signup successful
+      router.push("/home");
+    } catch (error) {
+      console.error("Signup request failed:", error);
+
+      setError("Unable to connect to the server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,7 +79,6 @@ export default function SignupPage() {
           Campus <b>Connect</b>
         </span>
       </Link>
-
 
       {/* Signup Card */}
       <div className="auth-card">
@@ -65,7 +104,6 @@ export default function SignupPage() {
 
         </div>
 
-
         {/* Signup Form */}
         <form
           onSubmit={handleSignup}
@@ -85,7 +123,6 @@ export default function SignupPage() {
             />
           </label>
 
-
           {/* College Email */}
           <label>
             College email
@@ -98,7 +135,6 @@ export default function SignupPage() {
               autoComplete="email"
             />
           </label>
-
 
           {/* Password */}
           <label>
@@ -131,7 +167,6 @@ export default function SignupPage() {
 
             </div>
           </label>
-
 
           {/* Confirm Password */}
           <label>
@@ -169,7 +204,6 @@ export default function SignupPage() {
             </div>
           </label>
 
-
           {/* Department + Year */}
           <div className="form-two">
 
@@ -206,7 +240,6 @@ export default function SignupPage() {
               </select>
             </label>
 
-
             <label>
               Year
 
@@ -242,12 +275,12 @@ export default function SignupPage() {
 
           </div>
 
-
           {/* Terms */}
           <label className="terms-row">
 
             <input
               type="checkbox"
+              name="terms"
               required
             />
 
@@ -258,25 +291,39 @@ export default function SignupPage() {
 
           </label>
 
+          {/* Backend Error Message */}
+          {error && (
+            <p
+              style={{
+                color: "#ef4444",
+                fontSize: "14px",
+                marginTop: "8px",
+              }}
+            >
+              {error}
+            </p>
+          )}
 
           {/* Signup Button */}
           <button
             type="submit"
             className="auth-submit"
+            disabled={loading}
           >
-            Create account
+            {loading
+              ? "Creating account..."
+              : "Create account"}
 
-            <ChevronRight
-              size={17}
-            />
+            {!loading && (
+              <ChevronRight size={17} />
+            )}
           </button>
 
         </form>
 
-
         {/* Login Link */}
         <p className="auth-switch">
-          Already have an account?{" "}
+          Already have an account{"?"}{" "}
 
           <Link href="/login">
             Log in
@@ -284,7 +331,6 @@ export default function SignupPage() {
         </p>
 
       </div>
-
 
       {/* Security Note */}
       <p className="auth-note">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bell,
   BookOpen,
@@ -208,10 +208,12 @@ function RequestCard({
 
 function Header({
   onMenu,
-  onNavigate
+  onNavigate,
+  userName
 }: {
   onMenu: () => void
   onNavigate: (id: string) => void
+  userName: string
 }) {
   const [open, setOpen] = useState(false)
 
@@ -275,7 +277,7 @@ function Header({
             />
 
             <span>
-              Atharva
+              {userName}
             </span>
           </button>
 
@@ -401,10 +403,12 @@ function Sidebar({
 
 function Home({
   go,
-  open
+  open,
+  userName
 }: {
   go: (id: string) => void
   open: () => void
+  userName: string
 }) {
   return (
     <div className="content-shell">
@@ -417,7 +421,7 @@ function Home({
           </p>
 
           <h1>
-            Good morning, Atharva <span>👋</span>
+            Good morning, {userName} <span>👋</span>
           </h1>
 
           <p className="subheading">
@@ -1206,7 +1210,35 @@ function Leaderboard() {
    PROFILE
 ========================================================= */
 
-function Profile() {
+function Profile({
+  user
+}: {
+  user: {
+    name: string
+    email: string
+    department: string
+    year: string
+  } | null
+}) {
+
+  const profileName = user?.name || 'Student'
+  const initials = profileName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  const departmentShort =
+    user?.department === 'Information Technology'
+      ? 'IT'
+      : user?.department === 'Computer Engineering'
+        ? 'CSE'
+        : user?.department === 'Electronics & Telecommunication'
+          ? 'E&TC'
+          : user?.department === 'Mechanical Engineering'
+            ? 'Mechanical'
+            : ''
 
   return (
     <div className="content-shell profile-shell">
@@ -1219,18 +1251,20 @@ function Profile() {
         <div className="profile-main">
 
           <Avatar
-            initials="AS"
+            initials={initials || 'ST'}
             size="lg"
           />
 
           <div>
 
             <h1>
-              Atharva Shinde
+              {profileName}
             </h1>
 
             <p>
-              BE IT · Fourth Year · Xavier Institute of Engineering
+              {departmentShort
+                ? `${departmentShort} · ${user?.year || ''} Year · Xavier Institute of Engineering`
+                : `${user?.year || ''} Year · Xavier Institute of Engineering`}
             </p>
 
             <span className="top-helper">
@@ -1394,6 +1428,42 @@ export default function Page() {
   const [mobile, setMobile] =
     useState(false)
 
+  const [user, setUser] = useState<{
+    name: string
+    email: string
+    department: string
+    year: string
+  } | null>(null)
+
+  const userName = user?.name
+    .trim()
+    .split(' ')[0] || 'Student'
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+
+        if (!response.ok) {
+          return
+        }
+
+        const result = await response.json()
+
+        if (result.success && result.user) {
+          setUser(result.user)
+        }
+      } catch (error) {
+        console.error(
+          'Failed to get current user:',
+          error
+        )
+      }
+    }
+
+    getCurrentUser()
+  }, [])
+
 
   const go = (id: string) => {
 
@@ -1414,6 +1484,7 @@ export default function Page() {
         <Home
           go={go}
           open={() => setDetail(true)}
+          userName={userName}
         />
       )
 
@@ -1430,7 +1501,7 @@ export default function Page() {
           : active === 'leaderboard'
             ? <Leaderboard />
 
-            : <Profile />
+            : <Profile user={user} />
 
 
   return (
@@ -1441,6 +1512,7 @@ export default function Page() {
           setMobile(!mobile)
         }
         onNavigate={go}
+        userName={userName}
       />
 
 

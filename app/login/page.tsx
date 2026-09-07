@@ -3,19 +3,59 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronRight, HeartHandshake, ShieldCheck } from "lucide-react";
+import {
+  ChevronRight,
+  HeartHandshake,
+  ShieldCheck,
+} from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
-    // Frontend only for now.
-    // Later this will connect to the backend.
-    router.push("/home");
+    setLoading(true);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+
+    const data = {
+      email: form.get("email"),
+      password: form.get("password"),
+    };
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.message || "Login failed");
+        return;
+      }
+
+      // Login successful
+      router.push("/home");
+    } catch (error) {
+      console.error("Login request failed:", error);
+
+      setError("Unable to connect to the server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,7 +71,6 @@ export default function LoginPage() {
           Campus <b>Connect</b>
         </span>
       </Link>
-
 
       {/* Login Card */}
       <div className="auth-card">
@@ -57,7 +96,6 @@ export default function LoginPage() {
 
         </div>
 
-
         {/* Login Form */}
         <form
           onSubmit={handleLogin}
@@ -77,7 +115,6 @@ export default function LoginPage() {
             />
           </label>
 
-
           {/* Password */}
           <label>
             Password
@@ -85,7 +122,11 @@ export default function LoginPage() {
             <div className="password-wrapper">
 
               <input
-                type={showPassword ? "text" : "password"}
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
                 name="password"
                 placeholder="Enter your password"
                 required
@@ -105,30 +146,48 @@ export default function LoginPage() {
             </div>
           </label>
 
-
           {/* Forgot Password */}
           <button
             type="button"
             className="forgot"
+            onClick={() => {
+              setError(
+                "Password reset is not available yet."
+              );
+            }}
           >
             Forgot password?
           </button>
 
+          {/* Backend Error */}
+          {error && (
+            <p
+              style={{
+                color: "#ef4444",
+                fontSize: "14px",
+                marginTop: "8px",
+              }}
+            >
+              {error}
+            </p>
+          )}
 
           {/* Login Button */}
           <button
             type="submit"
             className="auth-submit"
+            disabled={loading}
           >
-            Log in
+            {loading
+              ? "Logging in..."
+              : "Log in"}
 
-            <ChevronRight
-              size={17}
-            />
+            {!loading && (
+              <ChevronRight size={17} />
+            )}
           </button>
 
         </form>
-
 
         {/* Signup Link */}
         <p className="auth-switch">
@@ -140,7 +199,6 @@ export default function LoginPage() {
         </p>
 
       </div>
-
 
       {/* Security Note */}
       <p className="auth-note">
