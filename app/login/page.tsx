@@ -48,7 +48,8 @@ export default function LoginPage() {
       }
 
       // Login successful
-      router.push("/home");
+      router.replace("/home");
+      router.refresh();
     } catch (error) {
       console.error("Login request failed:", error);
 
