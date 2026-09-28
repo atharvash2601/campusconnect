@@ -56,7 +56,8 @@ export default function SignupPage() {
       }
 
       // Signup successful
-      router.push("/home");
+      router.replace("/home");
+      router.refresh();
     } catch (error) {
       console.error("Signup request failed:", error);
 

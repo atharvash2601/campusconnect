@@ -60,11 +60,19 @@ const UserSchema = new Schema(
       enum: ["student", "admin"],
       default: "student",
     },
+    bio: { type: String, trim: true, maxlength: 500, default: "" },
+    skills: { type: [String], default: [], maxlength: 20 },
+    points: { type: Number, default: 0, min: 0 },
+    questionsAsked: { type: Number, default: 0, min: 0 },
+    answersGiven: { type: Number, default: 0, min: 0 },
+    acceptedAnswers: { type: Number, default: 0, min: 0 },
   },
   {
     timestamps: true,
   }
 );
+
+UserSchema.index({ email: 1 }, { unique: true });
 
 const User =
   models.User ||
