@@ -69,7 +69,7 @@ export default function LoginPage() {
         </span>
 
         <span>
-          Campus <b>Connect</b>
+          XIE <b>Connect</b>
         </span>
       </Link>
 
